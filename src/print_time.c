@@ -50,6 +50,13 @@ void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *
         setlocale(LC_ALL, locale);
     }
 
+    if (tm.tm_hour <= 6)
+        START_COLOR("color_bad");
+    else if (tm.tm_hour <= 16)
+        START_COLOR("color_good");
+    else if (tm.tm_hour >= 22)
+        START_COLOR("color_degraded");
+
     if (format_time == NULL) {
         strftime(timebuf, sizeof(timebuf), format, &tm);
         maybe_escape_markup(timebuf, &outwalk);
@@ -73,5 +80,6 @@ void print_time(yajl_gen json_gen, char *buffer, const char *title, const char *
     }
 
     *outwalk = '\0';
+    END_COLOR;
     OUTPUT_FULL_TEXT(buffer);
 }
