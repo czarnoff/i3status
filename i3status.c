@@ -306,6 +306,7 @@ int main(int argc, char *argv[]) {
         CFG_BOOL("colors", 1, CFGF_NONE),
         CFG_STR("separator", "default", CFGF_NONE),
         CFG_STR("color_separator", "#333333", CFGF_NONE),
+        CFG_STR("color_default", "#FFFFFF", CFGF_NONE),
         CFG_INT("interval", 1, CFGF_NONE),
         CFG_COLOR_OPTS("#00FF00", "#FFFF00", "#FF0000"),
         CFG_STR("markup", "none", CFGF_NONE),
@@ -397,6 +398,7 @@ int main(int argc, char *argv[]) {
         CFG_STR("locale", "", CFGF_NONE),
         CFG_STR("format_time", NULL, CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
+        CFG_CUSTOM_COLOR_OPTS,
         CFG_CUSTOM_MIN_WIDTH_OPT,
         CFG_CUSTOM_SEPARATOR_OPT,
         CFG_CUSTOM_SEP_BLOCK_WIDTH_OPT,
@@ -732,7 +734,11 @@ int main(int argc, char *argv[]) {
 
             CASE_SEC_TITLE("tztime") {
                 SEC_OPEN_MAP("tztime");
-                print_time(json_gen, buffer, title, cfg_getstr(sec, "format"), cfg_getstr(sec, "timezone"), cfg_getstr(sec, "locale"), cfg_getstr(sec, "format_time"), tv.tv_sec);
+                print_time(json_gen, buffer, title, cfg_getstr(sec, "format"), 
+                      cfg_getstr(sec, "timezone"), 
+                      cfg_getstr(sec, "locale"), 
+                      cfg_getstr(sec, "format_time"), 
+                      tv.tv_sec);
                 SEC_CLOSE_MAP;
             }
 
