@@ -73,9 +73,22 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
                                         !isdigit(device[strlen("pulse:")])
                                     ? device + strlen("pulse:")
                                     : NULL;
-        int cvolume = pulse_initialize() ? volume_pulseaudio(sink_idx, sink_name) : 0;
-        int ivolume = DECOMPOSE_VOLUME(cvolume);
-        bool muted = DECOMPOSE_MUTED(cvolume);
+        int cvolume;
+        int ivolume;
+        bool muted;
+
+        if (pulse_initialize()){
+           cvolume = volume_pulseaudio(sink_idx, sink_name);
+        }
+        else {
+           START_COLOR("color_bad");
+           cvolume = 0;
+           pbval = 0;
+        }
+
+        ivolume = DECOMPOSE_VOLUME(cvolume);
+        muted = DECOMPOSE_MUTED(cvolume);
+
         if (muted) {
             START_COLOR("color_degraded");
             pbval = 0;
