@@ -540,7 +540,7 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
 
     if (batt_info.seconds_remaining < 0 && batt_info.present_rate > 0 && batt_info.status != CS_FULL) {
         if (batt_info.status == CS_CHARGING){
-            batt_info.seconds_remaining = 3600.0 * (full - batt_info.remaining) / batt_info.present_rate;
+            batt_info.seconds_remaining = 3600.0 * (batt_info.full_last * 0.95  - batt_info.remaining) / batt_info.present_rate;
         }
         else if (batt_info.status == CS_DISCHARGING){
             START_COLOR("color_degraded");
@@ -559,6 +559,10 @@ void print_battery_info(yajl_gen json_gen, char *buffer, int number, const char 
             START_COLOR("color_bad");
             colorful_output = true;
         }
+    }
+    if (batt_info.status != CS_CHARGING && batt_info.percentage_remaining < low_threshold) {
+        START_COLOR("color_bad");
+        colorful_output = true;
     }
 
     if (batt_info.status == CS_FULL) {
