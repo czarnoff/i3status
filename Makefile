@@ -85,6 +85,11 @@ OBJS:=$(filter-out src/pulse.o, $(OBJS))
 LIBS:=$(filter-out -lpulse, $(LIBS))
 endif
 
+ifeq ($(OS),DragonFly)
+OBJS:=$(filter-out src/pulse.o, $(OBJS))
+LIBS:=$(filter-out -lpulse, $(LIBS)) -lpthread
+endif
+
 src/%.o: src/%.c include/i3status.h
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
 	@echo " CC $<"
@@ -98,6 +103,9 @@ all: i3status manpage
 i3status: ${OBJS}
 	$(CC) $(LDFLAGS) -o $@ $^ $(LIBS)
 	@echo " LD $@"
+
+test: i3status
+	LC_ALL=C ./travis/run-tests.pl
 
 clean:
 	rm -f *.o src/*.o
@@ -113,8 +121,6 @@ install:
 	install -m 755 -d $(DESTDIR)$(SYSCONFDIR)
 	install -m 755 -d $(DESTDIR)$(MANPREFIX)/share/man/man1
 	install -m 755 i3status $(DESTDIR)$(PREFIX)/bin/i3status
-	# Allow network configuration for getting the link speed
-	(which setcap && setcap cap_net_admin=ep $(DESTDIR)$(PREFIX)/bin/i3status) || true
 	install -m 644 i3status.conf $(DESTDIR)$(SYSCONFDIR)/i3status.conf
 	install -m 644 man/i3status.1 $(DESTDIR)$(MANPREFIX)/share/man/man1
 

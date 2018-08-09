@@ -38,6 +38,7 @@
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <ifaddrs.h>
+#include <stdlib.h>
 #include <net/if.h>
 #include <net/if_media.h>
 #include <netproto/802_11/ieee80211.h>
@@ -480,7 +481,7 @@ error1:
  * | 127.0.0.1    | no IP        | IPv4      | ok                |
  * | 127.0.0.1    | ::1/128      | IPv4      | ok                |
  */
-void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface, const char *format_up, const char *format_down) {
+void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface, const char *format_up, const char *format_down, const char *format_quality) {
     const char *walk;
     char *outwalk = buffer;
     wireless_info_t info;
@@ -534,22 +535,19 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
     for (; *walk != '\0'; walk++) {
         if (*walk != '%') {
             *(outwalk++) = *walk;
-            continue;
-        }
 
-        if (BEGINS_WITH(walk + 1, "quality")) {
+        } else if (BEGINS_WITH(walk + 1, "quality")) {
             if (info.flags & WIRELESS_INFO_FLAG_HAS_QUALITY) {
                 if (info.quality_max)
-                    outwalk += sprintf(outwalk, "%3d%s", PERCENT_VALUE(info.quality, info.quality_max), pct_mark);
+                    outwalk += sprintf(outwalk, format_quality, PERCENT_VALUE(info.quality, info.quality_max), pct_mark);
                 else
                     outwalk += sprintf(outwalk, "%d", info.quality);
             } else {
                 *(outwalk++) = '?';
             }
             walk += strlen("quality");
-        }
 
-        if (BEGINS_WITH(walk + 1, "signal")) {
+        } else if (BEGINS_WITH(walk + 1, "signal")) {
             if (info.flags & WIRELESS_INFO_FLAG_HAS_SIGNAL) {
                 if (info.signal_level_max)
                     outwalk += sprintf(outwalk, "%3d%s", PERCENT_VALUE(info.signal_level, info.signal_level_max), pct_mark);
@@ -559,9 +557,8 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
                 *(outwalk++) = '?';
             }
             walk += strlen("signal");
-        }
 
-        if (BEGINS_WITH(walk + 1, "noise")) {
+        } else if (BEGINS_WITH(walk + 1, "noise")) {
             if (info.flags & WIRELESS_INFO_FLAG_HAS_NOISE) {
                 if (info.noise_level_max)
                     outwalk += sprintf(outwalk, "%3d%s", PERCENT_VALUE(info.noise_level, info.noise_level_max), pct_mark);
@@ -571,9 +568,8 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
                 *(outwalk++) = '?';
             }
             walk += strlen("noise");
-        }
 
-        if (BEGINS_WITH(walk + 1, "essid")) {
+        } else if (BEGINS_WITH(walk + 1, "essid")) {
 #ifdef IW_ESSID_MAX_SIZE
             if (info.flags & WIRELESS_INFO_FLAG_HAS_ESSID)
                 maybe_escape_markup(info.essid, &outwalk);
@@ -581,23 +577,20 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
 #endif
                 *(outwalk++) = '?';
             walk += strlen("essid");
-        }
 
-        if (BEGINS_WITH(walk + 1, "frequency")) {
+        } else if (BEGINS_WITH(walk + 1, "frequency")) {
             if (info.flags & WIRELESS_INFO_FLAG_HAS_FREQUENCY)
                 outwalk += sprintf(outwalk, "%1.1f GHz", info.frequency / 1e9);
             else
                 *(outwalk++) = '?';
             walk += strlen("frequency");
-        }
 
-        if (BEGINS_WITH(walk + 1, "ip")) {
+        } else if (BEGINS_WITH(walk + 1, "ip")) {
             outwalk += sprintf(outwalk, "%s", ip_address);
             walk += strlen("ip");
         }
-
 #ifdef LINUX
-        if (BEGINS_WITH(walk + 1, "bitrate")) {
+        else if (BEGINS_WITH(walk + 1, "bitrate")) {
             char br_buffer[128];
 
             print_bitrate(br_buffer, sizeof(br_buffer), info.bitrate);
@@ -606,6 +599,9 @@ void print_wireless_info(yajl_gen json_gen, char *buffer, const char *interface,
             walk += strlen("bitrate");
         }
 #endif
+        else {
+            *(outwalk++) = '%';
+        }
     }
 
 out:
