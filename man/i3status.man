@@ -66,7 +66,6 @@ wireless wlan0 {
 }
 
 ethernet eth0 {
-        # if you use %speed, i3status requires the cap_net_admin capability
         format_up = "E: %ip (%speed)"
         format_down = "E: down"
 }
@@ -160,7 +159,7 @@ etc.).
 dzen2::
 Dzen is a general purpose messaging, notification and menuing program for X11.
 It was designed to be scriptable in any language and integrate well with window
-managers like dwm, wmii and xmonad though it will work with any windowmanger
+managers like dwm, wmii and xmonad though it will work with any window manager
 xmobar::
 xmobar is a minimalistic, text based, status bar. It was designed to work
 with the xmonad Window Manager.
@@ -300,7 +299,8 @@ There also is an option "format_down". You can hide the output with
 
 Gets the link quality, frequency and ESSID of the given wireless network
 interface. You can specify different format strings for the network being
-connected or not connected.
+connected or not connected. The quality is padded with leading zeroes by
+default; to pad with something else use +format_quality+.
 
 The special interface name `_first_` will be replaced by the first wireless
 network interface found on the system (excluding devices starting with "lo").
@@ -311,12 +311,13 @@ network interface found on the system (excluding devices starting with "lo").
 
 *Example format_down*: +W: down+
 
+*Example format_quality*: +"%03d%s"+
+
 === Ethernet
 
 Gets the IP address and (if possible) the link speed of the given ethernet
 interface. If no IPv4 address is available and an IPv6 address is, it will be
-displayed. Getting the link speed requires the cap_net_admin capability.
-Set it using +setcap cap_net_admin=ep $(which i3status)+.
+displayed.
 
 The special interface name `_first_` will be replaced by the first non-wireless
 network interface found on the system (excluding devices starting with "lo").
@@ -335,8 +336,8 @@ estimated to be empty. If you want to use the last full capacity instead of the
 design capacity (when using the design capacity, it may happen that your
 battery is at 23% when fully charged because it’s old. In general, I want to
 see it this way, because it tells me how worn off my battery is.), just specify
-+last_full_capacity = true+. You can hide seconds in the remaining time and
-empty time estimations by setting +hide_seconds = true+.
++last_full_capacity = true+. You can show seconds in the remaining time and
+empty time estimations by setting +hide_seconds = false+.
 
 If you want the battery percentage to be shown without decimals, add
 +integer_battery_capacity = true+.
@@ -459,9 +460,9 @@ It acts equivalently to +format+.
 As Linux' meminfo doesn't expose the overall memory in use, there are multiple
 methods to distinguish the actually used memory. 
 
-*Example used_memory_method*: +memavailable+ ("total memory" - "MemAvailable", matches gnome system monitor)
+*Example memory_used_method*: +memavailable+ ("total memory" - "MemAvailable", matches +free+ command)
 
-*Example used_memory_method*: +classical+ ("total memory" - "free" - "buffers" - "cache", matches gnome system monitor)
+*Example memory_used_method*: +classical+ ("total memory" - "free" - "buffers" - "cache", matches gnome system monitor)
 
 *Example order*: +memory+
 
@@ -649,7 +650,7 @@ disk "/" {
 == Using i3status with dzen2
 
 After installing dzen2, you can directly use it with i3status. Just ensure that
-+output_format+ is set to +dzen2+.
++output_format+ is set to +dzen2+. *Note*: +min_width+ is not supported.
 
 *Example for usage of i3status with dzen2*:
 --------------------------------------------------------------
@@ -661,32 +662,19 @@ i3status | dzen2 -fg white -ta r -w 1280 \
 
 To get xmobar to start, you might need to copy the default configuration
 file to +~/.xmobarrc+. Also, ensure that the +output_format+ option for i3status
-is set to +xmobar+.
+is set to +xmobar+. *Note*: +min_width+ is not supported.
 
 *Example for usage of i3status with xmobar*:
 ---------------------------------------------------------------------
 i3status | xmobar -o -t "%StdinReader%" -c "[Run StdinReader]"
 ---------------------------------------------------------------------
 
-== What about memory usage or CPU frequency?
+== What about CPU frequency?
 
-While talking about two specific things, please understand this section as a
+While talking about specific things, please understand this section as a
 general explanation why your favorite information is not included in i3status.
 
-Let’s talk about memory usage specifically. It is hard to measure memory in a
-way which is accurate or meaningful. An in-depth understanding of how paging
-and virtual memory work in your operating system is required. Furthermore, even
-if we had a well-defined way of displaying memory usage and you would
-understand it, I think that it’s not helpful to repeatedly monitor your memory
-usage. One reason for that is that I have not run out of memory in the last few
-years.  Memory has become so cheap that even in my 4 year old notebook, I have
-8 GiB of RAM. Another reason is that your operating system will do the right
-thing anyway: Either you have not enough RAM for your workload, but you need to
-do it anyway, then your operating system will swap. Or you don’t have enough
-RAM and you want to restrict your workload so that it fits, then the operating
-system will kill the process using too much RAM and you can act accordingly.
-
-For CPU frequency, the situation is similar. Many people don’t understand how
+Let’s talk about CPU frequency specifically. Many people don’t understand how
 frequency scaling works precisely. The generally recommended CPU frequency
 governor ("ondemand") changes the CPU frequency far more often than i3status
 could display it. The display number is therefore often incorrect and doesn’t
@@ -698,10 +686,9 @@ a WiFi network or not, and if you have enough disk space to fit that 4.3 GiB
 download.
 
 However, if you need to look at some kind of information more than once in a
-while (like checking repeatedly how full your RAM is), you are probably better
-off with a script doing that, which pops up an alert when your RAM usage reaches
-a certain threshold. After all, the point of computers is not to burden you
-with additional boring tasks like repeatedly checking a number.
+while, you are probably better off with a script doing that, which pops up.
+After all, the point of computers is not to burden you with additional boring
+tasks like repeatedly checking a number.
 
 == External scripts/programs with i3status
 

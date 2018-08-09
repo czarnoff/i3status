@@ -35,15 +35,17 @@ static char *apply_volume_format(const char *fmt, char *outwalk, int ivolume) {
     for (; *walk != '\0'; walk++) {
         if (*walk != '%') {
             *(outwalk++) = *walk;
-            continue;
-        }
-        if (BEGINS_WITH(walk + 1, "%")) {
+
+        } else if (BEGINS_WITH(walk + 1, "%")) {
             outwalk += sprintf(outwalk, "%s", pct_mark);
             walk += strlen("%");
-        }
-        if (BEGINS_WITH(walk + 1, "volume")) {
+
+        } else if (BEGINS_WITH(walk + 1, "volume")) {
             outwalk += sprintf(outwalk, "%d%s", ivolume, pct_mark);
             walk += strlen("volume");
+
+        } else {
+            *(outwalk++) = '%';
         }
     }
     return outwalk;
@@ -61,7 +63,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
         free(instance);
     }
 
-#ifndef __OpenBSD__
+#if !defined(__DragonFly__) && !defined(__OpenBSD__)
     /* Try PulseAudio first */
 
     /* If the device name has the format "pulse[:N]" where N is the
@@ -164,7 +166,7 @@ void print_volume(yajl_gen json_gen, char *buffer, const char *fmt, const char *
     snd_mixer_selem_id_set_index(sid, mixer_idx);
     snd_mixer_selem_id_set_name(sid, mixer);
     if (!(elem = snd_mixer_find_selem(m, sid))) {
-        fprintf(stderr, "i3status: ALSA: Cannot find mixer %s (index %i)\n",
+        fprintf(stderr, "i3status: ALSA: Cannot find mixer %s (index %u)\n",
                 snd_mixer_selem_id_get_name(sid), snd_mixer_selem_id_get_index(sid));
         snd_mixer_close(m);
         snd_mixer_selem_id_free(sid);

@@ -44,7 +44,8 @@
     CFG_STR_CB("align", NULL, CFGF_NONE, parse_align)
 
 #define CFG_COLOR_OPTS(good, degraded, bad)             \
-    CFG_STR("color_good", good, CFGF_NONE),             \
+    CFG_STR("color_good", good, CFGF_NONE)              \
+    ,                                                   \
         CFG_STR("color_degraded", degraded, CFGF_NONE), \
         CFG_STR("color_bad", bad, CFGF_NONE)
 
@@ -106,7 +107,7 @@ static bool path_exists(const char *path) {
 
 static void *scalloc(size_t size) {
     void *result = calloc(size, 1);
-    exit_if_null(result, "Error: out of memory (calloc(%zd))\n", size);
+    exit_if_null(result, "Error: out of memory (calloc(%zu))\n", size);
     return result;
 }
 
@@ -142,7 +143,7 @@ static int parse_min_width(cfg_t *context, cfg_opt_t *option, const char *value,
     long num = strtol(value, &end, 10);
 
     if (num < 0)
-        die("Invalid min_width attribute found in section %s, line %d: %d\n"
+        die("Invalid min_width attribute found in section %s, line %d: %ld\n"
             "Expected positive integer or string\n",
             context->name, context->line, num);
     else if (num == LONG_MIN || num == LONG_MAX || (end && *end != '\0'))
@@ -337,6 +338,7 @@ int main(int argc, char *argv[]) {
     cfg_opt_t wireless_opts[] = {
         CFG_STR("format_up", "W: (%quality at %essid, %bitrate) %ip", CFGF_NONE),
         CFG_STR("format_down", "W: down", CFGF_NONE),
+        CFG_STR("format_quality", "%3d%s", CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
         CFG_CUSTOM_COLOR_OPTS,
         CFG_CUSTOM_MIN_WIDTH_OPT,
@@ -376,7 +378,7 @@ int main(int argc, char *argv[]) {
         CFG_STR("threshold_type", "time", CFGF_NONE),
         CFG_BOOL("last_full_capacity", false, CFGF_NONE),
         CFG_BOOL("integer_battery_capacity", false, CFGF_NONE),
-        CFG_BOOL("hide_seconds", false, CFGF_NONE),
+        CFG_BOOL("hide_seconds", true, CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
         CFG_CUSTOM_COLOR_OPTS,
         CFG_CUSTOM_MIN_WIDTH_OPT,
@@ -695,7 +697,7 @@ int main(int argc, char *argv[]) {
                     interface = first_eth_interface(NET_TYPE_WIRELESS);
                 if (interface == NULL)
                     interface = title;
-                print_wireless_info(json_gen, buffer, interface, cfg_getstr(sec, "format_up"), cfg_getstr(sec, "format_down"));
+                print_wireless_info(json_gen, buffer, interface, cfg_getstr(sec, "format_up"), cfg_getstr(sec, "format_down"), cfg_getstr(sec, "format_quality"));
                 SEC_CLOSE_MAP;
             }
 
