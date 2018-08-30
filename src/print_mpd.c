@@ -12,9 +12,8 @@
 #include <mpd/tag.h>
 #include <mpd/message.h>
 
-static void
-print_tag(struct mpd_song **song, enum mpd_tag_type type,
-	  const char *label, char **outwalk)
+static void print_tag(struct mpd_song **song, enum mpd_tag_type type,
+	  char **outwalk)
 {
 	unsigned i = 0;
 	const char *value;
@@ -24,7 +23,7 @@ print_tag(struct mpd_song **song, enum mpd_tag_type type,
     }
 
 	while ((value = mpd_song_get_tag(*song, type, i++)) != NULL)
-		*outwalk += snprintf(*outwalk, 50, "%s:%s", label, value);
+		*outwalk += snprintf(*outwalk, 50, "%s", value);
 }
 
 static bool mpd_output(struct mpd_connection **mpd_conn, struct mpd_song **song)
@@ -79,24 +78,27 @@ void print_mpd(yajl_gen json_gen, char *buffer, const char *title, const char *f
             *(outwalk++) = *walk;
 
         } else if (BEGINS_WITH(walk + 1, "artist")) {
-			print_tag(&song, MPD_TAG_ARTIST, "art", &outwalk);
+			print_tag(&song, MPD_TAG_ARTIST, &outwalk);
             walk += strlen("artist");
 
         } else if (BEGINS_WITH(walk + 1, "title")) {
-			print_tag(&song, MPD_TAG_TITLE, "tit", &outwalk);
+			print_tag(&song, MPD_TAG_TITLE, &outwalk);
             walk += strlen("title");
 
         } else if (BEGINS_WITH(walk + 1, "track")) {
-			print_tag(&song, MPD_TAG_TRACK, "tra", &outwalk);
+			print_tag(&song, MPD_TAG_TRACK, &outwalk);
             walk += strlen("track");
 
         } else if (BEGINS_WITH(walk + 1, "album")) {
-			print_tag(&song, MPD_TAG_ALBUM, "alb", &outwalk);
+			print_tag(&song, MPD_TAG_ALBUM, &outwalk);
             walk += strlen("album");
 
         } else {
             *(outwalk++) = '%';
         }
+    }
+    if (song != NULL){
+	   mpd_song_free(song);
     }
 
     END_COLOR;
