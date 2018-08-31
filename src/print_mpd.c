@@ -26,8 +26,11 @@ static void print_tag(struct mpd_song **song, enum mpd_tag_type type,
 		*outwalk += snprintf(*outwalk, 50, "%s", value);
 }
 
-static bool mpd_output(struct mpd_connection **mpd_conn, struct mpd_song **song)
+static char mpd_output(struct mpd_connection **mpd_conn, struct mpd_song **song)
 {
+	struct mpd_status *status;
+    int tmp_status=0;
+
     if (*mpd_conn == NULL)
     {
 
@@ -38,22 +41,36 @@ static bool mpd_output(struct mpd_connection **mpd_conn, struct mpd_song **song)
     {
         mpd_connection_free(*mpd_conn);
         *mpd_conn=NULL;
-        return false;
+        return 0;
     }
     else
     {
 		*song = mpd_run_current_song(*mpd_conn);
         
         if (*song == NULL)
-            return false;
+        {
+            return 0;
+        }
+        status = mpd_run_status(*mpd_conn);
         
-        return true;
+        if (status != NULL)
+        {
+            tmp_status=mpd_status_get_state(status);
+            mpd_status_free(status);
+        }
+        else
+        {
+            return 0;
+        }
+
+
+        return tmp_status;
     }
 
 }
 
 void print_mpd(yajl_gen json_gen, char *buffer, const char *title, const char *format, const char *format_down) {
-    bool running = false;
+    char running = 0;
     const char *walk;
     char *outwalk = buffer;
     
@@ -67,11 +84,23 @@ void print_mpd(yajl_gen json_gen, char *buffer, const char *title, const char *f
     } else {
         walk = format_down;
     }
-    
 
-
-    START_COLOR((running ? "color_good" : "color_bad"));
-    
+    switch (running) {
+        case 0 :
+            START_COLOR("color_bad");
+            break;
+        case 1 :
+            START_COLOR("color_degraded");
+            break;
+        case 2 :
+            START_COLOR("color_good");
+            break;
+        case 3 :
+            break;
+        default :
+            START_COLOR("color_bad");
+            walk="Error";
+    }
 
     for (; *walk != '\0'; walk++) {
         if (*walk != '%') {
