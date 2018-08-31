@@ -325,7 +325,7 @@ int main(int argc, char *argv[]) {
         CFG_END()};
     
     cfg_opt_t mpd_opts[] = {
-        CFG_STR("format", "%title: %status", CFGF_NONE),
+        CFG_STR("format", "%artist: %title", CFGF_NONE),
         CFG_STR("format_down", NULL, CFGF_NONE),
         CFG_CUSTOM_ALIGN_OPT,
         CFG_CUSTOM_COLOR_OPTS,
