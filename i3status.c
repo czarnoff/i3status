@@ -306,10 +306,10 @@ int main(int argc, char *argv[]) {
         CFG_STR("output_format", "auto", CFGF_NONE),
         CFG_BOOL("colors", 1, CFGF_NONE),
         CFG_STR("separator", "default", CFGF_NONE),
-        CFG_STR("color_separator", "#333333", CFGF_NONE),
-        CFG_STR("color_default", "#FFFFFF", CFGF_NONE),
+        CFG_STR("color_separator", "#93a1a1", CFGF_NONE),
+        CFG_STR("color_default", "#839496", CFGF_NONE),
         CFG_INT("interval", 1, CFGF_NONE),
-        CFG_COLOR_OPTS("#00FF00", "#FFFF00", "#FF0000"),
+        CFG_COLOR_OPTS("#2aa198", "#b58900", "#dc322f"),
         CFG_STR("markup", "none", CFGF_NONE),
         CFG_END()};
 
