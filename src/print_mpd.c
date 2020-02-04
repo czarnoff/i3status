@@ -1,5 +1,13 @@
 // vim:ts=4:sw=4:expandtab
-/* Czarnoff */
+/*! 
+ * \mainpage i3Status bar
+ * \section mpd_sec print_mpd module
+ * \author Jeffery Williams
+ * \copyright GNU Public License
+ 
+ * This code reads mpd status and adds it to the status bar.
+ */
+
 #include <stdio.h>
 #include <string.h>
 #include <yajl/yajl_gen.h>
@@ -14,20 +22,24 @@
 #include <mpd/tag.h>
 #include <mpd/message.h>
 
-/* print song info to the status bar */
+
+/*! print song info to the status bar */
 static void print_tag(struct mpd_song **song, enum mpd_tag_type type,
 	  char **outwalk)
 {
-	unsigned i = 0;
+	unsigned idx = 0;
 	const char *value;
 
     if (*song == NULL) {
         return;
     }
 
+
     // Walk through the tag ids that match; only copy 50 characters
-	while ((value = mpd_song_get_tag(*song, type, i++)) != NULL)
+	while ((value = mpd_song_get_tag(*song, type, idx++)) != NULL)
+    {
 		*outwalk += snprintf(*outwalk, 50, "%s", value);
+    }
 }
 
 /* Get information from mpd */
@@ -80,7 +92,8 @@ static char mpd_output(struct mpd_connection **mpd_conn, struct mpd_song **song)
     return 0;
 }
 
-/* print the mpd status */
+/*! 
+ * \brief Add mpd info to the status bar */
 void print_mpd(yajl_gen json_gen, char *buffer, const char *title, const char *format, const char *format_down) {
     char running = 0;
     const char *walk;
@@ -100,22 +113,24 @@ void print_mpd(yajl_gen json_gen, char *buffer, const char *title, const char *f
         walk = format_down;
     }
 
-    //Choose the color based on status
+    /*! \subsection color Colors
+     * Choose the color based on status
+     */
     switch (running) {
 
-        case 0 : //Unknown state (no song loaded)
+        case 0 : //!Unknown state (no song loaded): Bad color
             START_COLOR("color_bad");
             break;
 
-        case 1 : //Stopped
+        case 1 : //!Stopped: Degraded color
             START_COLOR("color_degraded");
             break;
 
-        case 2 : //Playing
+        case 2 : //!Playing: Good color
             START_COLOR("color_good");
             break;
 
-        case 3 : //Paused
+        case 3 : //! Paused: Default color
             break;
 
         default : //How did you get here?
